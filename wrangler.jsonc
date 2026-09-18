@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "milano-bolin",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-09-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "dist/client"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bolin-restaurant",
+      "database_id": "af930d06-1090-42f1-9588-2e220f71e159",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}
