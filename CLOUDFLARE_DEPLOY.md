@@ -9,6 +9,8 @@
 
 保存后重新部署，然后访问 `/admin`。管理员登录有效期为 12 小时，可在后台点击“退出登录”。不要把真实密码写进 GitHub 或 `wrangler.jsonc`。
 
+每次 Cloudflare 部署前会自动应用尚未执行的 D1 迁移。本次更新会为菜品表增加 `is_published` 字段，用于控制菜品是否在前台展示。
+
 ## Workers Builds 设置
 
 - Build command: `npm run build`
