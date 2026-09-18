@@ -1,0 +1,4 @@
+"use client";
+import Link from "next/link"; import { usePathname } from "next/navigation"; import { Menu, X } from "lucide-react"; import { useState } from "react";
+const links=[["店铺介绍","/#about"],["菜品展示","/#featured"],["详情菜单","/menu"],["联系方式","/#contact"]];
+export function SiteHeader(){const[open,setOpen]=useState(false);const pathname=usePathname();return <header className="site-header"><Link href="/" className="brand" aria-label="米兰博林外卖打包点心店首页"><span className="brand-mark">博</span><span><b>米兰博林</b><small>外卖打包点心店</small></span></Link><button className="menu-toggle" aria-label="打开导航" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button><nav className={open?"nav open":"nav"} aria-label="主导航">{links.map(([label,href])=><Link key={label} href={href} className={pathname===href?"active":""} onClick={()=>setOpen(false)}>{label}</Link>)}</nav></header>}

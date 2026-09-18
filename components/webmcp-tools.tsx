@@ -1,0 +1,6 @@
+"use client";
+import { useEffect } from "react";
+
+declare global { interface Document { modelContext?: { registerTool:(tool:Record<string,unknown>,options?:{signal?:AbortSignal})=>void|Promise<void> } } }
+
+export function WebMcpTools(){useEffect(()=>{const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();void Promise.resolve(context.registerTool({name:"create_dish",title:"上架菜品",description:"在米兰博林外卖打包点心店后台新增并立即上架一道菜品。",inputSchema:{type:"object",properties:{name:{type:"string"},category:{type:"string"},price:{type:"integer",minimum:1},image:{type:"string"},description:{type:"string"}},required:["name","category","price","image","description"],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input:unknown){const data=input as Record<string,unknown>;const response=await fetch("/api/dishes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error??"菜品上架失败");window.dispatchEvent(new CustomEvent("dish-created",{detail:result.dish}));return {id:result.dish.id,name:result.dish.name,status:"published"}}},{signal:lifecycle.signal})).catch(()=>{});return()=>lifecycle.abort()},[]);return null}
