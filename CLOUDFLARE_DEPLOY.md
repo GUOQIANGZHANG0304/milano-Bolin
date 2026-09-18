@@ -1,5 +1,14 @@
 # Cloudflare 部署说明
 
+## 设置管理员密码
+
+部署后，在 Cloudflare 控制台进入 **Workers & Pages → milano-bolin → Settings → Variables and Secrets**，添加加密 Secret：
+
+- 变量名：`ADMIN_PASSWORD`
+- 值：设置一个不少于 12 位、只有管理员知道的强密码
+
+保存后重新部署，然后访问 `/admin`。管理员登录有效期为 12 小时，可在后台点击“退出登录”。不要把真实密码写进 GitHub 或 `wrangler.jsonc`。
+
 ## Workers Builds 设置
 
 - Build command: `npm run build`
