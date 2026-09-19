@@ -4,19 +4,21 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, ImageIcon, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import type { DishRecord } from "@/lib/dishes";
+import { DISH_TAGS, type DishRecord } from "@/lib/dishes";
 
 type DishForm = Omit<DishRecord, "id" | "price"> & { price: string; featured: boolean };
-const emptyForm: DishForm = { name: "", category: "早点", price: "", image: "", description: "", isPublished: true, featured: false };
+const emptyForm: DishForm = { name: "", category: "早点", price: "", image: "", description: "", tags: [], isPublished: true, featured: false };
 
 function DishFields({ form, setForm, imageFile, setImageFile }: { form: DishForm; setForm: (value: DishForm) => void; imageFile: File | null; setImageFile: (file: File | null) => void }) {
   const set = (key: keyof DishForm, value: string | boolean) => setForm({ ...form, [key]: value });
+  const toggleTag = (tag: string) => setForm({ ...form, tags: form.tags.includes(tag) ? form.tags.filter(value => value !== tag) : [...form.tags, tag] });
   return <div className="form-grid">
     <label><span>菜品名称</span><input required value={form.name} onChange={e => set("name", e.target.value)} placeholder="例如：鲜肉小笼包" /></label>
     <label><span>菜品类别</span><select value={form.category} onChange={e => set("category", e.target.value)}><option>早点</option><option>冷盘</option><option>炒菜</option><option>面条</option></select></label>
     <label><span>价格（欧元）</span><input required min="0.01" step="0.01" type="number" value={form.price} onChange={e => set("price", e.target.value)} placeholder="8.00" /></label>
     <label className="publish-field"><span>是否上架</span><select value={form.isPublished ? "published" : "hidden"} onChange={e => set("isPublished", e.target.value === "published")}><option value="published">已上架</option><option value="hidden">已下架</option></select></label>
     <label className="publish-field"><span>是否成为今日招牌</span><select value={form.featured ? "featured" : "normal"} onChange={e => set("featured", e.target.value === "featured")}><option value="normal">普通菜品</option><option value="featured">今日招牌</option></select></label>
+    <fieldset className="wide tag-checks"><legend>二级标签（可多选）</legend><div>{DISH_TAGS.map(tag => <label key={tag}><input type="checkbox" checked={form.tags.includes(tag)} onChange={() => toggleTag(tag)} /><span>{tag}</span></label>)}</div></fieldset>
     <label className="wide upload-field"><span>菜品图片</span><input required={!form.image} type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setImageFile(e.target.files?.[0] ?? null)} /><small>{imageFile ? `已选择：${imageFile.name}` : form.image ? "不选择新文件将保留当前图片" : "支持 JPG、PNG、WebP，最大 5 MB"}</small>{form.image && <img src={form.image} alt="当前菜品预览" />}</label>
     <label className="wide"><span>菜品描述</span><textarea required rows={5} value={form.description} onChange={e => set("description", e.target.value)} placeholder="介绍食材、口味和烹饪特色…" /></label>
   </div>;
@@ -34,12 +36,14 @@ export function AdminClient() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("全部");
   const [listPage, setListPage] = useState(0);
+  const [tagFilters, setTagFilters] = useState<string[]>([]);
   const listPageSize = 6;
 
   const filteredDishes = useMemo(() => dishes.filter(dish =>
     (categoryFilter === "全部" || dish.category === categoryFilter) &&
-    `${dish.name}${dish.description}`.toLowerCase().includes(search.trim().toLowerCase())
-  ), [dishes, categoryFilter, search]);
+    (tagFilters.length === 0 || tagFilters.some(tag => dish.tags.includes(tag))) &&
+    `${dish.name}${dish.description}${dish.tags.join("")}`.toLowerCase().includes(search.trim().toLowerCase())
+  ), [dishes, categoryFilter, tagFilters, search]);
   const listPageCount = Math.max(1, Math.ceil(filteredDishes.length / listPageSize));
   const visibleDishes = filteredDishes.slice(listPage * listPageSize, listPage * listPageSize + listPageSize);
 
@@ -65,7 +69,7 @@ export function AdminClient() {
   }
 
   useEffect(() => { if (view === "manage") void loadDishes(); }, [view]);
-  useEffect(() => { setListPage(0); }, [search, categoryFilter]);
+  useEffect(() => { setListPage(0); }, [search, categoryFilter, tagFilters]);
   useEffect(() => { if (listPage >= listPageCount) setListPage(listPageCount - 1); }, [listPage, listPageCount]);
 
   async function logout() {
@@ -87,7 +91,7 @@ export function AdminClient() {
 
   function beginEdit(dish: DishRecord) {
     setEditing(dish);
-    setForm({ name: dish.name, category: dish.category, price: String(dish.price), image: dish.image, description: dish.description, isPublished: dish.isPublished, featured: dish.featured === true });
+    setForm({ name: dish.name, category: dish.category, price: String(dish.price), image: dish.image, description: dish.description, tags: dish.tags, isPublished: dish.isPublished, featured: dish.featured === true });
     setImageFile(null);
     setStatus("idle");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -147,8 +151,9 @@ export function AdminClient() {
       </> : <>
         <div className="admin-heading"><span className="eyebrow">菜品管理</span><h1>{editing ? "修改菜品" : "全部菜品"}</h1><p>{editing ? "修改资料或调整上下架状态。" : "查看、修改、删除菜品，或控制前台是否展示。"}</p>{!editing && <button type="button" className="import-samples-button" disabled={status === "saving"} onClick={() => void importSamples()}><Plus size={16} />导入缺少的案例菜品</button>}</div>
         {editing ? <form className="dish-form" onSubmit={saveEdit}><DishFields form={form} setForm={setForm} imageFile={imageFile} setImageFile={setImageFile} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存修改"}</button><button type="button" className="button secondary" onClick={() => { setEditing(null); setForm(emptyForm); setImageFile(null); }}>取消</button></div></form> : loading ? <div className="status-card">正在加载菜品…</div> : dishes.length ? <>
-          <div className="admin-list-tools"><label><Search size={18}/><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="查找菜品名称或描述" aria-label="查找菜品" /></label><select value={categoryFilter} onChange={event => setCategoryFilter(event.target.value)} aria-label="按分类筛选"><option>全部</option><option>早点</option><option>冷盘</option><option>炒菜</option><option>面条</option></select><span>共 {filteredDishes.length} 道</span></div>
-          {visibleDishes.length ? <div className="admin-dish-list">{visibleDishes.map(dish => <article className="admin-dish-row" key={dish.id}><img src={dish.image} alt="" /><div className="admin-dish-info"><div><span className={`publish-badge ${dish.isPublished ? "online" : "offline"}`}>{dish.isPublished ? "已上架" : "已下架"}</span>{dish.featured && <span className="publish-badge featured">今日招牌</span>}<small>{dish.category}</small></div><h2>{dish.name}</h2><p>€{dish.price.toFixed(2)}</p></div><div className="admin-row-actions"><button type="button" onClick={() => beginEdit(dish)}><Pencil size={17} />修改</button><AlertDialog><AlertDialogTrigger asChild><button type="button" className="danger"><Trash2 size={17} />删除</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>确认删除“{dish.name}”？</AlertDialogTitle><AlertDialogDescription>删除后无法恢复，该菜品也会立即从前台消失。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => void removeDish(dish.id)}>确认删除</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>)}</div> : <div className="status-card">没有找到符合条件的菜品。</div>}
+          <div className="admin-list-tools"><label><Search size={18}/><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="查找菜品、描述或标签" aria-label="查找菜品" /></label><select value={categoryFilter} onChange={event => setCategoryFilter(event.target.value)} aria-label="按分类筛选"><option>全部</option><option>早点</option><option>冷盘</option><option>炒菜</option><option>面条</option></select><span>共 {filteredDishes.length} 道</span></div>
+          <div className="filter-tags" aria-label="按二级标签筛选">{DISH_TAGS.map(tag => <label key={tag}><input type="checkbox" checked={tagFilters.includes(tag)} onChange={() => setTagFilters(current => current.includes(tag) ? current.filter(value => value !== tag) : [...current, tag])}/><span>{tag}</span></label>)}</div>
+          {visibleDishes.length ? <div className="admin-dish-list">{visibleDishes.map(dish => <article className="admin-dish-row" key={dish.id}><img src={dish.image} alt="" /><div className="admin-dish-info"><div><span className={`publish-badge ${dish.isPublished ? "online" : "offline"}`}>{dish.isPublished ? "已上架" : "已下架"}</span>{dish.featured && <span className="publish-badge featured">今日招牌</span>}<small>{dish.category}</small></div><h2>{dish.name}</h2>{dish.tags.length>0&&<div className="dish-tags compact">{dish.tags.map(tag=><span key={tag}>{tag}</span>)}</div>}<p>€{dish.price.toFixed(2)}</p></div><div className="admin-row-actions"><button type="button" onClick={() => beginEdit(dish)}><Pencil size={17} />修改</button><AlertDialog><AlertDialogTrigger asChild><button type="button" className="danger"><Trash2 size={17} />删除</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>确认删除“{dish.name}”？</AlertDialogTitle><AlertDialogDescription>删除后无法恢复，该菜品也会立即从前台消失。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => void removeDish(dish.id)}>确认删除</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>)}</div> : <div className="status-card">没有找到符合条件的菜品。</div>}
           {listPageCount > 1 && <div className="admin-pagination"><button type="button" disabled={listPage === 0} onClick={() => setListPage(page => page - 1)}><ChevronLeft size={18}/>上一页</button><span>第 {listPage + 1} / {listPageCount} 页</span><button type="button" disabled={listPage === listPageCount - 1} onClick={() => setListPage(page => page + 1)}>下一页<ChevronRight size={18}/></button></div>}
         </> : <div className="admin-empty"><ImageIcon size={30} /><h2>数据库中还没有菜品</h2><p>可将前台的 6 道案例菜品导入 D1，导入后即可修改、删除和上下架。</p><button type="button" className="button primary" disabled={status === "saving"} onClick={() => void importSamples()}>{status === "saving" ? "正在导入…" : "导入前台案例菜品"}</button></div>}
         {status !== "idle" && status !== "saving" && !editing && <p className={`form-message admin-list-message ${status}`}><CheckCircle2 size={18} />{message}</p>}

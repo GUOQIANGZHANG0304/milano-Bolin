@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     const existingNames = new Set(existing.map((dish) => dish.name));
     const missingSamples = sampleDishes.filter((dish) => !existingNames.has(dish.name));
     if (!missingSamples.length) return Response.json({ count: 0 });
-    const imported = await db.insert(dishes).values(missingSamples.map(({ name, category, price, image, description, isPublished, featured }) => ({
-      name, category, price, image, description, isPublished, isFeatured: featured === true,
+    const imported = await db.insert(dishes).values(missingSamples.map(({ name, category, price, image, description, tags, isPublished, featured }) => ({
+      name, category, price, image, description, tags, isPublished, isFeatured: featured === true,
     }))).returning({ id: dishes.id });
     return Response.json({ count: imported.length }, { status: 201 });
   } catch (error) {

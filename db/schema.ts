@@ -3,6 +3,7 @@ import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const dishes = sqliteTable("dishes", {
   id: integer("id").primaryKey({ autoIncrement: true }), name: text("name").notNull(), category: text("category").notNull(),
   price: integer("price").notNull(), image: text("image").notNull(), description: text("description").notNull(),
+  tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
   isPublished: integer("is_published", { mode: "boolean" }).notNull().default(true),
   isFeatured: integer("is_featured", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),

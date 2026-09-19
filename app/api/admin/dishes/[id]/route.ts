@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 import { getDb } from "@/db";
 import { dishes } from "@/db/schema";
 import { isAdminRequest } from "@/lib/admin-auth";
-import { normalizeDbDish } from "@/lib/dishes";
+import { DISH_TAGS, normalizeDbDish } from "@/lib/dishes";
 
 function parseId(value: string) {
   const id = Number(value);
@@ -36,12 +36,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const price = Number(body.price);
     const isPublished = body.isPublished === true;
     const isFeatured = body.featured === true;
+    const tags = Array.isArray(body.tags) ? body.tags.filter((tag): tag is string => typeof tag === "string" && DISH_TAGS.includes(tag as typeof DISH_TAGS[number])) : [];
     if (!name || !category || !image || !description || !Number.isFinite(price) || price <= 0) {
       return Response.json({ error: "请完整填写菜品信息，价格需大于 0。" }, { status: 400 });
     }
     const db = getDb();
     const [previous] = await db.select({ image: dishes.image }).from(dishes).where(eq(dishes.id, id)).limit(1);
-    const [dish] = await db.update(dishes).set({ name, category, image, description, price, isPublished, isFeatured }).where(eq(dishes.id, id)).returning();
+    const [dish] = await db.update(dishes).set({ name, category, image, description, price, tags, isPublished, isFeatured }).where(eq(dishes.id, id)).returning();
     if (!dish) return Response.json({ error: "没有找到该菜品。" }, { status: 404 });
     if (previous?.image && previous.image !== image) await removeUploadedImage(previous.image);
     return Response.json({ dish: normalizeDbDish(dish) });
