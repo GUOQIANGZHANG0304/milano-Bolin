@@ -49,7 +49,7 @@ export function MenuClient() {
 
     <div className="mobile-menu-browser">
       <aside aria-label="二级标签">{["全部", ...DISH_TAGS].map(tag => <button type="button" key={tag} className={mobileTag === tag ? "active" : ""} onClick={() => setMobileTag(tag)}>{tag}</button>)}</aside>
-      <section aria-live="polite">{loading ? <p className="mobile-menu-empty">正在准备菜单…</p> : mobileDishes.length ? mobileDishes.map(dish => <a href={`/menu/${dish.id}`} className="mobile-dish-row" key={dish.id}><div><b>{dish.name}</b><small>{dish.category}{dish.tags.length ? ` · ${dish.tags.join(" · ")}` : ""}</small></div><strong>€{dish.price.toFixed(2)}</strong></a>) : <p className="mobile-menu-empty">该标签暂无菜品</p>}</section>
+      <section aria-live="polite">{loading ? <p className="mobile-menu-empty">正在准备菜单…</p> : mobileDishes.length ? mobileDishes.map(dish => <a href={`/menu/${dish.id}`} className="mobile-dish-row" key={dish.id}><img src={dish.image} alt={dish.name}/><div><b>{dish.name}</b><small>{dish.category}{dish.tags.length ? ` · ${dish.tags.join(" · ")}` : ""}</small><strong>€{dish.price.toFixed(2)}</strong></div></a>) : <p className="mobile-menu-empty">该标签暂无菜品</p>}</section>
     </div>
   </>;
 }

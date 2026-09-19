@@ -1,4 +1,4 @@
-export const DISH_TAGS = ["主食","鸡肉","鸭肉","牛肉","猪肉","鱼肉","虾类","海鲜","蔬菜","豆制品"] as const;
+export const DISH_TAGS = ["早餐","主食","鸡肉","鸭肉","牛肉","猪肉","鱼肉","虾类","海鲜","蔬菜","豆制品"] as const;
 export type DishRecord = { id: string; name: string; category: string; price: number; image: string; description: string; tags: string[]; isPublished: boolean; featured?: boolean };
 export const sampleDishes: DishRecord[] = [
   { id:"signature-hongshao",name:"博林红烧肉",category:"炒菜",price:88,tags:["猪肉"],isPublished:true,featured:true,image:"/hero-feast.png",description:"精选层次分明的五花肉，小火慢煨至酥而不散，入口咸甜醇厚。" },
