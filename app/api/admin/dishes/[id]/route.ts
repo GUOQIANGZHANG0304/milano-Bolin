@@ -35,12 +35,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const description = String(body.description ?? "").trim();
     const price = Number(body.price);
     const isPublished = body.isPublished === true;
+    const isFeatured = body.featured === true;
     if (!name || !category || !image || !description || !Number.isFinite(price) || price <= 0) {
       return Response.json({ error: "请完整填写菜品信息，价格需大于 0。" }, { status: 400 });
     }
     const db = getDb();
     const [previous] = await db.select({ image: dishes.image }).from(dishes).where(eq(dishes.id, id)).limit(1);
-    const [dish] = await db.update(dishes).set({ name, category, image, description, price, isPublished }).where(eq(dishes.id, id)).returning();
+    const [dish] = await db.update(dishes).set({ name, category, image, description, price, isPublished, isFeatured }).where(eq(dishes.id, id)).returning();
     if (!dish) return Response.json({ error: "没有找到该菜品。" }, { status: 404 });
     if (previous?.image && previous.image !== image) await removeUploadedImage(previous.image);
     return Response.json({ dish: normalizeDbDish(dish) });

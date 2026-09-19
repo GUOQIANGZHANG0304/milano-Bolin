@@ -8,4 +8,4 @@ export const sampleDishes: DishRecord[] = [
   { id:"tea-duck",name:"樟茶鸭",category:"冷盘",price:98,isPublished:true,image:"/hero-feast.png",description:"茶香入骨，鸭皮酥脆，搭配手工椒盐呈现经典川味。" },
 ];
 const legacyCategoryMap:Record<string,string>={"招牌热菜":"炒菜","江鲜海味":"炒菜","川味经典":"炒菜","时令蔬食":"炒菜","主食甜品":"面条"};
-export function normalizeDbDish(row:{id:number;name:string;category:string;price:number;image:string;description:string;isPublished:boolean}):DishRecord{return{...row,id:String(row.id),category:legacyCategoryMap[row.category]??row.category}}
+export function normalizeDbDish(row:{id:number;name:string;category:string;price:number;image:string;description:string;isPublished:boolean;isFeatured:boolean}):DishRecord{return{...row,id:String(row.id),category:legacyCategoryMap[row.category]??row.category,featured:row.isFeatured}}
