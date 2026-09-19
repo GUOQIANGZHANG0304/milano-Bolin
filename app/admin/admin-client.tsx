@@ -84,6 +84,21 @@ export function AdminClient() {
     else { setStatus("error"); setMessage(data.error ?? "删除失败"); }
   }
 
+  async function importSamples() {
+    setStatus("saving");
+    const response = await fetch("/api/admin/dishes/import-samples", { method: "POST" });
+    if (response.status === 401) return window.location.replace("/admin/login");
+    const data = await response.json() as { count?: number; error?: string };
+    if (response.ok) {
+      setStatus("success");
+      setMessage(`已将 ${data.count ?? 0} 道案例菜品导入数据库`);
+      await loadDishes();
+    } else {
+      setStatus("error");
+      setMessage(data.error ?? "案例导入失败");
+    }
+  }
+
   return <div className="admin-shell">
     <aside className="admin-aside">
       <Link href="/" className="brand"><span className="brand-mark">博</span><span><b>米兰博林</b><small>内容管理</small></span></Link>
@@ -100,8 +115,8 @@ export function AdminClient() {
         <div className="admin-heading"><span className="eyebrow">菜品管理</span><h1>上架新菜品</h1><p>填写菜品资料，并决定是否立即在前台展示。</p></div>
         <form className="dish-form" onSubmit={createDish}><DishFields form={form} setForm={setForm} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存菜品"}</button>{status !== "idle" && status !== "saving" && <p className={`form-message ${status}`}><CheckCircle2 size={18} />{message}</p>}</div></form>
       </> : <>
-        <div className="admin-heading"><span className="eyebrow">菜品管理</span><h1>{editing ? "修改菜品" : "全部菜品"}</h1><p>{editing ? "修改资料或调整上下架状态。" : "查看、修改、删除菜品，或控制前台是否展示。"}</p></div>
-        {editing ? <form className="dish-form" onSubmit={saveEdit}><DishFields form={form} setForm={setForm} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存修改"}</button><button type="button" className="button secondary" onClick={() => { setEditing(null); setForm(emptyForm); }}>取消</button></div></form> : loading ? <div className="status-card">正在加载菜品…</div> : dishes.length ? <div className="admin-dish-list">{dishes.map(dish => <article className="admin-dish-row" key={dish.id}><img src={dish.image} alt="" /><div className="admin-dish-info"><div><span className={`publish-badge ${dish.isPublished ? "online" : "offline"}`}>{dish.isPublished ? "已上架" : "已下架"}</span><small>{dish.category}</small></div><h2>{dish.name}</h2><p>€{dish.price.toFixed(2)}</p></div><div className="admin-row-actions"><button type="button" onClick={() => beginEdit(dish)}><Pencil size={17} />修改</button><AlertDialog><AlertDialogTrigger asChild><button type="button" className="danger"><Trash2 size={17} />删除</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>确认删除“{dish.name}”？</AlertDialogTitle><AlertDialogDescription>删除后无法恢复，该菜品也会立即从前台消失。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => void removeDish(dish.id)}>确认删除</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>)}</div> : <div className="status-card">数据库中还没有菜品，请先上架一道菜。</div>}
+        <div className="admin-heading"><span className="eyebrow">菜品管理</span><h1>{editing ? "修改菜品" : "全部菜品"}</h1><p>{editing ? "修改资料或调整上下架状态。" : "查看、修改、删除菜品，或控制前台是否展示。"}</p>{!editing && <button type="button" className="import-samples-button" disabled={status === "saving"} onClick={() => void importSamples()}><Plus size={16} />导入缺少的案例菜品</button>}</div>
+        {editing ? <form className="dish-form" onSubmit={saveEdit}><DishFields form={form} setForm={setForm} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存修改"}</button><button type="button" className="button secondary" onClick={() => { setEditing(null); setForm(emptyForm); }}>取消</button></div></form> : loading ? <div className="status-card">正在加载菜品…</div> : dishes.length ? <div className="admin-dish-list">{dishes.map(dish => <article className="admin-dish-row" key={dish.id}><img src={dish.image} alt="" /><div className="admin-dish-info"><div><span className={`publish-badge ${dish.isPublished ? "online" : "offline"}`}>{dish.isPublished ? "已上架" : "已下架"}</span><small>{dish.category}</small></div><h2>{dish.name}</h2><p>€{dish.price.toFixed(2)}</p></div><div className="admin-row-actions"><button type="button" onClick={() => beginEdit(dish)}><Pencil size={17} />修改</button><AlertDialog><AlertDialogTrigger asChild><button type="button" className="danger"><Trash2 size={17} />删除</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>确认删除“{dish.name}”？</AlertDialogTitle><AlertDialogDescription>删除后无法恢复，该菜品也会立即从前台消失。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => void removeDish(dish.id)}>确认删除</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>)}</div> : <div className="admin-empty"><ImageIcon size={30} /><h2>数据库中还没有菜品</h2><p>可将前台的 6 道案例菜品导入 D1，导入后即可修改、删除和上下架。</p><button type="button" className="button primary" disabled={status === "saving"} onClick={() => void importSamples()}>{status === "saving" ? "正在导入…" : "导入前台案例菜品"}</button></div>}
         {status !== "idle" && status !== "saving" && !editing && <p className={`form-message admin-list-message ${status}`}><CheckCircle2 size={18} />{message}</p>}
       </>}
     </main>
