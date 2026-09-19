@@ -11,6 +11,10 @@
 
 每次 Cloudflare 部署前会自动应用尚未执行的 D1 迁移。本次更新会为菜品表增加 `is_published` 字段，用于控制菜品是否在前台展示。
 
+## 创建菜品图片存储桶
+
+在 Cloudflare 控制台进入 **Storage & databases → R2 object storage**，创建名称为 `bolin-dish-images` 的存储桶。项目的 `wrangler.jsonc` 会把该存储桶绑定为 `BUCKET`。创建完成后重新运行最新部署，后台即可上传 JPG、PNG、WebP 图片（单张最大 5 MB）。
+
 ## Workers Builds 设置
 
 - Build command: `npm run build`

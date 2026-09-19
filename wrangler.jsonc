@@ -18,5 +18,11 @@
       "database_id": "af930d06-1090-42f1-9588-2e220f71e159",
       "migrations_dir": "drizzle"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "bolin-dish-images"
+    }
   ]
 }
