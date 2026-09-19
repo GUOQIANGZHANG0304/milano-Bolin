@@ -1,0 +1,19 @@
+"use client";
+import { ArrowRight, Clock3, MapPin, Phone, Sparkles } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { FeaturedCarousel } from "@/components/featured-carousel";
+import { useLanguage } from "@/lib/i18n";
+import type { DishRecord } from "@/lib/dishes";
+
+export function HomeContent({ featured }: { featured: DishRecord[] }) {
+  const { language } = useLanguage();
+  const it = language === "it";
+  return <main><SiteHeader/>
+    <section className="hero" id="about"><img className="hero-bg" src="/hero-feast.png" alt={it ? "Specialità di Bolin Milano" : "米兰博林外卖打包点心店招牌菜"}/><div className="hero-shade"/><div className="hero-content"><span className="eyebrow light">{it ? "Sapori cinesi a Milano · Da asporto" : "米兰点心 · 现做外带"}</span><h1>{it ? <>Sapori autentici,<br/>da portare con te.</> : <>一席好味，<br/>打包带走。</>}</h1><p>{it ? "Bolin Milano prepara ogni giorno dim sum e piatti casalinghi cinesi per il quartiere. Scegli in anticipo e ritira comodamente in negozio." : "米兰博林外卖打包点心店，为附近街坊准备现做中式点心与家常菜。提前选好，轻松到店取餐。"}</p><div className="hero-actions"><a href="/menu" className="button primary">{it ? "Scopri il menu" : "浏览完整菜单"} <ArrowRight size={18}/></a><a href="#contact" className="button ghost">{it ? "Informazioni" : "查看门店信息"}</a></div></div><div className="hero-note"><Sparkles size={18}/><span><b>{it ? "Consigli di oggi" : "今日推荐"}</b>{it ? "Piatti aggiornati secondo gli ingredienti disponibili" : "每日菜品，随到店食材更新"}</span></div></section>
+    <section className="about-band"><div><span>01</span><p>{it ? "Ingredienti freschi selezionati ogni giorno" : "坚持每日鲜采，拒绝预制口感"}</p></div><div><span>02</span><p>{it ? "Tecniche tradizionali, presentazione contemporanea" : "传统技法与现代呈现相得益彰"}</p></div><div><span>03</span><p>{it ? "Ideale da condividere con amici e famiglia" : "适合好友小聚与家庭宴请"}</p></div></section>
+    <section className="section" id="featured"><div className="section-heading"><div><span className="eyebrow">{it ? "La nostra selezione" : "本店甄选"}</span><h2>{it ? "Specialità del giorno" : "今日招牌"}</h2></div><a href="/menu" className="text-link">{it ? "Vedi tutti i piatti" : "查看全部菜品"} <ArrowRight size={17}/></a></div><FeaturedCarousel dishes={featured}/></section>
+    <section className="story-section"><div className="story-number">博</div><div><span className="eyebrow light">{it ? "Bolin Milano" : "关于米兰博林"}</span><h2>{it ? "Il buon sapore nasce dal tempo e dalla cura." : "好味道，来自不慌不忙的功夫。"}</h2></div><p>{it ? "Dall'impasto al ripieno, fino alla cottura a vapore, ogni preparazione segue il proprio ritmo. Portiamo i sapori familiari della cucina cinese nella vita quotidiana di Milano." : "从和面、调馅到蒸制，每一份点心都遵循它自己的节奏。我们以熟悉的中国味道，为在米兰的每一顿日常增添温暖。"}</p></section>
+    <section className="contact-section" id="contact"><div className="contact-intro"><span className="eyebrow">{it ? "Informazioni" : "门店信息"}</span><h2>{it ? <>Scegli i tuoi piatti,<br/>ritira in negozio.</> : <>选好点心，<br/>轻松到店取餐。</>}</h2><p>{it ? "Per prenotazioni o informazioni sui piatti del giorno, chiamaci durante l'orario di apertura." : "如需提前预订或咨询当日菜品，请在营业时间内致电门店。"}</p></div><div className="contact-cards"><div><MapPin/><span><small>{it ? "Indirizzo" : "地址"}</small>Via Giordano Bruno, 15, 20154 Milano MI</span></div><div><Phone/><span><small>{it ? "Telefono" : "电话"}</small><a href="tel:+390233103424">02 3310 3424</a></span></div><div><Clock3/><span><small>{it ? "Orari" : "营业时间"}</small><span className="hours-list"><b>{it ? "Venerdì: chiuso" : "周五：休息"}</b><b>{it ? "Da sabato a giovedì: 08:00–21:00" : "周六至周四：08:00–21:00"}</b></span></span></div></div></section>
+    <footer><div className="brand footer-brand"><span className="brand-mark">博</span><span><b>{it ? "Bolin Milano" : "米兰博林"}</b><small>{it ? "Cucina cinese da asporto" : "外卖打包点心店"}</small></span></div><p>{it ? "Preparato al momento, da portare con te." : "现做点心，暖心外带。"}</p><span>© 2026 {it ? "Bolin Milano" : "米兰博林外卖打包点心店"}</span></footer>
+  </main>;
+}
