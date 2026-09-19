@@ -7,13 +7,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { DishRecord } from "@/lib/dishes";
 
 type DishForm = Omit<DishRecord, "id" | "featured" | "price"> & { price: string };
-const emptyForm: DishForm = { name: "", category: "招牌热菜", price: "", image: "", description: "", isPublished: true };
+const emptyForm: DishForm = { name: "", category: "早点", price: "", image: "", description: "", isPublished: true };
 
 function DishFields({ form, setForm, imageFile, setImageFile }: { form: DishForm; setForm: (value: DishForm) => void; imageFile: File | null; setImageFile: (file: File | null) => void }) {
   const set = (key: keyof DishForm, value: string | boolean) => setForm({ ...form, [key]: value });
   return <div className="form-grid">
     <label><span>菜品名称</span><input required value={form.name} onChange={e => set("name", e.target.value)} placeholder="例如：鲜肉小笼包" /></label>
-    <label><span>菜品类别</span><select value={form.category} onChange={e => set("category", e.target.value)}><option>招牌热菜</option><option>江鲜海味</option><option>川味经典</option><option>时令蔬食</option><option>主食甜品</option></select></label>
+    <label><span>菜品类别</span><select value={form.category} onChange={e => set("category", e.target.value)}><option>早点</option><option>冷盘</option><option>炒菜</option><option>面条</option></select></label>
     <label><span>价格（欧元）</span><input required min="0.01" step="0.01" type="number" value={form.price} onChange={e => set("price", e.target.value)} placeholder="8.00" /></label>
     <label className="publish-field"><span>是否上架</span><select value={form.isPublished ? "published" : "hidden"} onChange={e => set("isPublished", e.target.value === "published")}><option value="published">已上架</option><option value="hidden">已下架</option></select></label>
     <label className="wide upload-field"><span>菜品图片</span><input required={!form.image} type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setImageFile(e.target.files?.[0] ?? null)} /><small>{imageFile ? `已选择：${imageFile.name}` : form.image ? "不选择新文件将保留当前图片" : "支持 JPG、PNG、WebP，最大 5 MB"}</small>{form.image && <img src={form.image} alt="当前菜品预览" />}</label>
