@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     for (const dish of menuSeedDishes) {
       const id = existingByName.get(dish.name);
       if (id === undefined) continue;
-      await db.update(dishes).set({ tags: dish.tags }).where(eq(dishes.id, id));
+      await db.update(dishes).set({ tags: dish.tags, image: dish.image }).where(eq(dishes.id, id));
       updatedCount += 1;
     }
     return Response.json({ count: importedCount, updatedCount }, { status: importedCount ? 201 : 200 });

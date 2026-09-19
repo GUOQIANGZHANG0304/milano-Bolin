@@ -1,16 +1,7 @@
 import type { DishRecord } from "@/lib/dishes";
+import { MENU_IMAGES } from "@/lib/menu-images.generated";
 
 type MenuRow = [name: string, price: number, published?: boolean];
-
-const imageFiles = {
-  "冷盘": "Appetizers china.jpg",
-  "炒菜": "Cantonese meat dishes.jpg",
-  "面条": "Chinese Food - Fried Noodles.JPG",
-  "早点": "A Northern Chinese Dim Sum and Noodle dishes at Peking Garden.jpg",
-  "海鲜": "A chinese seafood meal.jpg",
-};
-
-const imageUrl = (file: string) => `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}`;
 
 const rows: Record<string, MenuRow[]> = {
   "冷盘": [
@@ -50,11 +41,10 @@ function tagsFor(name: string, category: string) {
 
 export const menuSeedDishes: DishRecord[] = Object.entries(rows).flatMap(([category, items]) => items.map(([name, price, published = true], index) => {
   const tags = tagsFor(name, category);
-  const seafood = tags.includes("海鲜") || tags.includes("虾类") || tags.includes("鱼肉");
   return {
     id: `menu-${category}-${index}`,
     name, category, price,
-    image: imageUrl(imageFiles[seafood ? "海鲜" : category as keyof typeof imageFiles]),
+    image: MENU_IMAGES[name],
     description: `${name}，博林打包点心店现做菜品。`,
     tags, isPublished: published, featured: false,
   };
