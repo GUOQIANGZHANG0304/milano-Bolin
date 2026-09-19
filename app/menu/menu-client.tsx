@@ -32,7 +32,7 @@ export function MenuClient() {
     matchesQuery(dish)
   );
   const mobileDishes = dishes.filter(dish =>
-    (mobileTag === "全部" || dish.tags.includes(mobileTag)) && matchesQuery(dish)
+    (mobileTag === "全部" || (mobileTag === "冷盘" ? dish.category === "冷盘" : dish.tags.includes(mobileTag))) && matchesQuery(dish)
   );
 
   return <>
@@ -50,7 +50,7 @@ export function MenuClient() {
     </div>
 
     <div className="mobile-menu-browser">
-      <aside aria-label={it?"Ingredienti":"二级标签"}>{["全部", ...DISH_TAGS].map(tag => <button type="button" key={tag} className={mobileTag === tag ? "active" : ""} onClick={() => setMobileTag(tag)}>{tag==="全部"?translateCategory(tag,language):translateTag(tag,language)}</button>)}</aside>
+      <aside aria-label={it?"Categorie e ingredienti":"分类和二级标签"}>{["全部", "冷盘", ...DISH_TAGS].map(tag => <button type="button" key={tag} className={mobileTag === tag ? "active" : ""} onClick={() => setMobileTag(tag)}>{tag==="全部"||tag==="冷盘"?translateCategory(tag,language):translateTag(tag,language)}</button>)}</aside>
       <section aria-live="polite">{loading ? <p className="mobile-menu-empty">{it?"Preparazione del menu…":"正在准备菜单…"}</p> : mobileDishes.length ? mobileDishes.map(dish => {const shown=translateDish(dish,language);return <a href={`/menu/${dish.id}`} className="mobile-dish-row" key={dish.id}><img src={dish.image} alt={shown.name}/><div><b>{shown.name}</b><small>{shown.category}{shown.tags.length ? ` · ${shown.tags.join(" · ")}` : ""}</small><strong>€{dish.price.toFixed(2)}</strong></div></a>}) : <p className="mobile-menu-empty">{it?"Nessun piatto in questa categoria":"该标签暂无菜品"}</p>}</section>
     </div>
   </>;
