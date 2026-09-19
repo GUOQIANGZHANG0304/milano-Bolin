@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ImageIcon, LogOut, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, ImageIcon, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { DishRecord } from "@/lib/dishes";
 
@@ -31,6 +31,17 @@ export function AdminClient() {
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("全部");
+  const [listPage, setListPage] = useState(0);
+  const listPageSize = 6;
+
+  const filteredDishes = useMemo(() => dishes.filter(dish =>
+    (categoryFilter === "全部" || dish.category === categoryFilter) &&
+    `${dish.name}${dish.description}`.toLowerCase().includes(search.trim().toLowerCase())
+  ), [dishes, categoryFilter, search]);
+  const listPageCount = Math.max(1, Math.ceil(filteredDishes.length / listPageSize));
+  const visibleDishes = filteredDishes.slice(listPage * listPageSize, listPage * listPageSize + listPageSize);
 
   async function resolveImage() {
     if (!imageFile) return form.image;
@@ -54,6 +65,8 @@ export function AdminClient() {
   }
 
   useEffect(() => { if (view === "manage") void loadDishes(); }, [view]);
+  useEffect(() => { setListPage(0); }, [search, categoryFilter]);
+  useEffect(() => { if (listPage >= listPageCount) setListPage(listPageCount - 1); }, [listPage, listPageCount]);
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -133,7 +146,11 @@ export function AdminClient() {
         <form className="dish-form" onSubmit={createDish}><DishFields form={form} setForm={setForm} imageFile={imageFile} setImageFile={setImageFile} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存菜品"}</button>{status !== "idle" && status !== "saving" && <p className={`form-message ${status}`}><CheckCircle2 size={18} />{message}</p>}</div></form>
       </> : <>
         <div className="admin-heading"><span className="eyebrow">菜品管理</span><h1>{editing ? "修改菜品" : "全部菜品"}</h1><p>{editing ? "修改资料或调整上下架状态。" : "查看、修改、删除菜品，或控制前台是否展示。"}</p>{!editing && <button type="button" className="import-samples-button" disabled={status === "saving"} onClick={() => void importSamples()}><Plus size={16} />导入缺少的案例菜品</button>}</div>
-        {editing ? <form className="dish-form" onSubmit={saveEdit}><DishFields form={form} setForm={setForm} imageFile={imageFile} setImageFile={setImageFile} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存修改"}</button><button type="button" className="button secondary" onClick={() => { setEditing(null); setForm(emptyForm); setImageFile(null); }}>取消</button></div></form> : loading ? <div className="status-card">正在加载菜品…</div> : dishes.length ? <div className="admin-dish-list">{dishes.map(dish => <article className="admin-dish-row" key={dish.id}><img src={dish.image} alt="" /><div className="admin-dish-info"><div><span className={`publish-badge ${dish.isPublished ? "online" : "offline"}`}>{dish.isPublished ? "已上架" : "已下架"}</span>{dish.featured && <span className="publish-badge featured">今日招牌</span>}<small>{dish.category}</small></div><h2>{dish.name}</h2><p>€{dish.price.toFixed(2)}</p></div><div className="admin-row-actions"><button type="button" onClick={() => beginEdit(dish)}><Pencil size={17} />修改</button><AlertDialog><AlertDialogTrigger asChild><button type="button" className="danger"><Trash2 size={17} />删除</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>确认删除“{dish.name}”？</AlertDialogTitle><AlertDialogDescription>删除后无法恢复，该菜品也会立即从前台消失。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => void removeDish(dish.id)}>确认删除</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>)}</div> : <div className="admin-empty"><ImageIcon size={30} /><h2>数据库中还没有菜品</h2><p>可将前台的 6 道案例菜品导入 D1，导入后即可修改、删除和上下架。</p><button type="button" className="button primary" disabled={status === "saving"} onClick={() => void importSamples()}>{status === "saving" ? "正在导入…" : "导入前台案例菜品"}</button></div>}
+        {editing ? <form className="dish-form" onSubmit={saveEdit}><DishFields form={form} setForm={setForm} imageFile={imageFile} setImageFile={setImageFile} /><div className="form-actions"><button className="button primary" disabled={status === "saving"}>{status === "saving" ? "正在保存…" : "保存修改"}</button><button type="button" className="button secondary" onClick={() => { setEditing(null); setForm(emptyForm); setImageFile(null); }}>取消</button></div></form> : loading ? <div className="status-card">正在加载菜品…</div> : dishes.length ? <>
+          <div className="admin-list-tools"><label><Search size={18}/><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="查找菜品名称或描述" aria-label="查找菜品" /></label><select value={categoryFilter} onChange={event => setCategoryFilter(event.target.value)} aria-label="按分类筛选"><option>全部</option><option>早点</option><option>冷盘</option><option>炒菜</option><option>面条</option></select><span>共 {filteredDishes.length} 道</span></div>
+          {visibleDishes.length ? <div className="admin-dish-list">{visibleDishes.map(dish => <article className="admin-dish-row" key={dish.id}><img src={dish.image} alt="" /><div className="admin-dish-info"><div><span className={`publish-badge ${dish.isPublished ? "online" : "offline"}`}>{dish.isPublished ? "已上架" : "已下架"}</span>{dish.featured && <span className="publish-badge featured">今日招牌</span>}<small>{dish.category}</small></div><h2>{dish.name}</h2><p>€{dish.price.toFixed(2)}</p></div><div className="admin-row-actions"><button type="button" onClick={() => beginEdit(dish)}><Pencil size={17} />修改</button><AlertDialog><AlertDialogTrigger asChild><button type="button" className="danger"><Trash2 size={17} />删除</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>确认删除“{dish.name}”？</AlertDialogTitle><AlertDialogDescription>删除后无法恢复，该菜品也会立即从前台消失。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => void removeDish(dish.id)}>确认删除</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>)}</div> : <div className="status-card">没有找到符合条件的菜品。</div>}
+          {listPageCount > 1 && <div className="admin-pagination"><button type="button" disabled={listPage === 0} onClick={() => setListPage(page => page - 1)}><ChevronLeft size={18}/>上一页</button><span>第 {listPage + 1} / {listPageCount} 页</span><button type="button" disabled={listPage === listPageCount - 1} onClick={() => setListPage(page => page + 1)}>下一页<ChevronRight size={18}/></button></div>}
+        </> : <div className="admin-empty"><ImageIcon size={30} /><h2>数据库中还没有菜品</h2><p>可将前台的 6 道案例菜品导入 D1，导入后即可修改、删除和上下架。</p><button type="button" className="button primary" disabled={status === "saving"} onClick={() => void importSamples()}>{status === "saving" ? "正在导入…" : "导入前台案例菜品"}</button></div>}
         {status !== "idle" && status !== "saving" && !editing && <p className={`form-message admin-list-message ${status}`}><CheckCircle2 size={18} />{message}</p>}
       </>}
     </main>
