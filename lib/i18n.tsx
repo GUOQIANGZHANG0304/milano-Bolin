@@ -33,9 +33,9 @@ export function translateCategory(value: string, language: Language) { return la
 export function translateTag(value: string, language: Language) { return language === "it" ? tagIt[value] ?? value : value; }
 export function translateDish(dish: DishRecord, language: Language): DishRecord {
   if (language === "zh") return dish;
-  const name = dishIt[dish.name] ?? dish.name;
+  const name = dish.nameIt?.trim() || dishIt[dish.name] || dish.name;
   const generic = dish.description.includes("博林打包点心店现做菜品") || dish.description === `${dish.name}，博林打包点心店现做菜品。`;
-  return { ...dish, name, category: translateCategory(dish.category, language), tags: dish.tags.map(tag => translateTag(tag, language)), description: specificDescriptionIt[dish.name] ?? (generic ? `${name}, preparato al momento nella cucina di Bolin.` : dish.description) };
+  return { ...dish, name, category: translateCategory(dish.category, language), tags: dish.tags.map(tag => translateTag(tag, language)), description: dish.descriptionIt?.trim() || specificDescriptionIt[dish.name] || (generic ? `${name}, preparato al momento nella cucina di Bolin.` : dish.description) };
 }
 
 const LanguageContext = createContext<{ language: Language; setLanguage: (value: Language) => void }>({ language: "zh", setLanguage: () => undefined });

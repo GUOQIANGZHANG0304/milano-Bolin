@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const dishes = sqliteTable("dishes", {
-  id: integer("id").primaryKey({ autoIncrement: true }), name: text("name").notNull(), category: text("category").notNull(),
-  price: integer("price").notNull(), image: text("image").notNull(), description: text("description").notNull(),
+  id: integer("id").primaryKey({ autoIncrement: true }), name: text("name").notNull(), nameIt: text("name_it").notNull().default(""), category: text("category").notNull(),
+  price: integer("price").notNull(), image: text("image").notNull(), description: text("description").notNull(), descriptionIt: text("description_it").notNull().default(""),
   tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
   isPublished: integer("is_published", { mode: "boolean" }).notNull().default(true),
   isFeatured: integer("is_featured", { mode: "boolean" }).notNull().default(false),

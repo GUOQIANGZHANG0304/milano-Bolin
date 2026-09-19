@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     for (let offset = 0; offset < missingSamples.length; offset += 10) {
       const batch = missingSamples.slice(offset, offset + 10);
       const imported = await db.insert(dishes).values(batch.map(({ name, category, price, image, description, tags, isPublished, featured }) => ({
-        name, category, price, image, description, tags, isPublished, isFeatured: featured === true,
+        name, nameIt: "", category, price, image, description, descriptionIt: "", tags, isPublished, isFeatured: featured === true,
       }))).returning({ id: dishes.id });
       importedCount += imported.length;
     }
