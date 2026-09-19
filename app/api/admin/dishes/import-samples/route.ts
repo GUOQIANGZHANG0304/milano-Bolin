@@ -14,9 +14,14 @@ export async function POST(request: Request) {
     const existingByName = new Map(existing.map((dish) => [dish.name, dish.id]));
     const existingNames = new Set(existingByName.keys());
     const missingSamples = menuSeedDishes.filter((dish) => !existingNames.has(dish.name));
-    const imported = missingSamples.length ? await db.insert(dishes).values(missingSamples.map(({ name, category, price, image, description, tags, isPublished, featured }) => ({
-      name, category, price, image, description, tags, isPublished, isFeatured: featured === true,
-    }))).returning({ id: dishes.id }) : [];
+    let importedCount = 0;
+    for (let offset = 0; offset < missingSamples.length; offset += 10) {
+      const batch = missingSamples.slice(offset, offset + 10);
+      const imported = await db.insert(dishes).values(batch.map(({ name, category, price, image, description, tags, isPublished, featured }) => ({
+        name, category, price, image, description, tags, isPublished, isFeatured: featured === true,
+      }))).returning({ id: dishes.id });
+      importedCount += imported.length;
+    }
     let updatedCount = 0;
     for (const dish of menuSeedDishes) {
       const id = existingByName.get(dish.name);
@@ -24,9 +29,9 @@ export async function POST(request: Request) {
       await db.update(dishes).set({ tags: dish.tags }).where(eq(dishes.id, id));
       updatedCount += 1;
     }
-    return Response.json({ count: imported.length, updatedCount }, { status: imported.length ? 201 : 200 });
+    return Response.json({ count: importedCount, updatedCount }, { status: importedCount ? 201 : 200 });
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "案例导入失败，请确认 D1 迁移已经完成。" }, { status: 500 });
+    return Response.json({ error: "菜单导入失败，请稍后重试或查看 Worker 日志。" }, { status: 500 });
   }
 }
