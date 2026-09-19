@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720" role="img" aria-labelledby="title desc">
+  <title id="title">暂无菜品图片</title>
+  <desc id="desc">米兰博林菜品图片占位图</desc>
+  <rect width="960" height="720" fill="#eee6da"/>
+  <circle cx="480" cy="310" r="105" fill="none" stroke="#b7a998" stroke-width="12"/>
+  <path d="M390 310h180M480 220v180" stroke="#b7a998" stroke-width="12" stroke-linecap="round"/>
+  <text x="480" y="490" text-anchor="middle" fill="#75695d" font-family="Microsoft YaHei, sans-serif" font-size="38">暂无菜品图片</text>
+</svg>
